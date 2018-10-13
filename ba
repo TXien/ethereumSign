@@ -1,0 +1,65 @@
+package main
+import "github.com/ethereum/go-ethereum/core/types"
+import "github.com/ethereum/go-ethereum/common"
+import "github.com/ethereum/go-ethereum/crypto"
+import "math/big"
+import "fmt"
+import "os"
+//import "encoding/hex"
+import "crypto/ecdsa"
+import "strconv"
+//import "encoding/json"
+//import "github.com/ethereum/go-ethereum/cmd/utils"
+type GethTxn struct {
+  To   string     `json:"to"`
+  From string     `json:"from"`
+  Gas string      `json:"gas"`
+  GasPrice string `json:"gasPrice"`
+  Value string    `json:"value"`
+  Data string     `json:"input"`
+}
+
+func main(){
+//fmt.Println(os.Args[1])
+	if(os.Args[1]=="help"){
+		fmt.Println("1:from 2:to 3:nonce 4:value 5:gas 6:gasprice 7:privateKey")
+	} else {
+	from := os.Args[1]//"0xf1CB58C9635B53ec1F14dE283E58C9fB9364C5C1"
+	to := os.Args[2]//"0xf1CB58C9635B53ec1F14dE283E58C9fB9364C5C1"
+	data := []byte("")
+	nonce,_ := strconv.Atoi(os.Args[3])
+	va1 := big.NewInt(0)
+	value,_ := va1.SetString(os.Args[4],10)
+	gas,_ := strconv.Atoi(os.Args[5])
+	gasprice,_ := strconv.Atoi(os.Args[6])
+	key,_ := crypto.HexToECDSA(os.Args[7])
+	SignTxn(from,to,data,uint64(nonce),value,big.NewInt(int64(gas)),big.NewInt(int64(gasprice)),key)
+	}
+}
+
+func SignTxn(from string, _to string, data []byte, nonce uint64, value *big.Int, gas *big.Int, gasPrice *big.Int, privkey *ecdsa.PrivateKey)/* (*GethTxn, error)*/ {
+fmt.Println(value)
+//  var parsed_tx = new(GethTxn)
+  var amount = value
+  
+  to := common.HexToAddress(_to)
+
+//signer := types.NewEIP155Signer(nil)
+  tx := types.NewTransaction(nonce, to, amount, gas, gasPrice, data)
+  //signature, _ := crypto.Sign(tx.SigHash(signer).Bytes(), privkey)
+  signature, _ := types.SignTx(tx, types.HomesteadSigner{}/*types.NewEIP155Signer(big.NewInt(1))*/,  privkey)
+//  fmt.Println(signature)
+
+  ts := types.Transactions{signature}
+  my_string_var :=  fmt.Sprintf("%x", ts.GetRlp(0))
+  fmt.Println(my_string_var)
+/*
+  signed_tx, _ := tx.WithSignature(signer, signature)
+
+  json_tx, _ := signed_tx.MarshalJSON()
+  _ = json.Unmarshal(json_tx, parsed_tx)
+  parsed_tx.From = from
+  fmt.Println("data", parsed_tx.Data)
+  return parsed_tx, nil
+*/
+}
